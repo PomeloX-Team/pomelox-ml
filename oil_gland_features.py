@@ -15,19 +15,19 @@ def pre_processing(img):
 
 
 def oil_gland_features(img):
+    global p
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_equ = equalization_gray(gray)
     mode = get_mode(gray_equ, 30, 250)
     _, th = cv2.threshold(gray_equ, 70, 255, cv2.THRESH_BINARY)
 
-    if debug:
-        cv2.imshow('img', img)
-        cv2.imshow('img_th', th)
-        cv2.imshow('img_gray', gray)
-        cv2.imshow('img_gray_equ', gray_equ)
-        k = cv2.waitKey(0) & 0xff
-        if k == ord('e'):
-            exit(0)
+    p.imshow('img', img)
+    p.imshow('img_th', th)
+    p.imshow('img_gray', gray)
+    p.imshow('img_gray_equ', gray_equ)
+    k = cv2.waitKey(0) & 0xff
+    if k == ord('e'):
+        exit(0)
     r, c = th.shape
     no_all = r * c
     no_white = np.count_nonzero(th)
@@ -36,12 +36,13 @@ def oil_gland_features(img):
 
 
 def main():
+    global p
     # symbol = ['A', 'B', 'C', 'D', 'E', 'F']
     symbol = ['A']
     number = range(1, 2)
     error_list = []
     date = gen_date()
-    no_black = []
+    no_black_ratio = []
     for prefix in symbol:
         for i in number:
             for j in date:
@@ -50,13 +51,12 @@ def main():
                 if img is None:
                     continue
                 res = oil_gland_features(img)
-                no_black.append(res)
-    plt.plot(no_black)
+                no_black_ratio.append(res)
+    plt.scatter(no_black_ratio,range(1,len(no_black_ratio)+1,1))
     plt.show()
 
 
 if __name__ == '__main__':
-    # debug = True
-    p = Print(debug)
+    # p.change_mode(True)
     main()
     pass
