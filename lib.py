@@ -30,6 +30,9 @@ class Print:
     def change_mode(self, mode):
         self.debug_mode = mode
 
+    def get_mode(self):
+        return self.debug_mode
+
 
 def get_mode(channel, min=0, max=255):
     # numpy return a contiguous flattened array.
