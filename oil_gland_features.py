@@ -14,7 +14,7 @@ def pre_processing(img):
     return v_mode, v_mean
 
 
-def oil_gland_features(img):
+def oil_gland_feature(img):
     global p
     img_filter = clahe(img)
     gray = cv2.cvtColor(img_filter, cv2.COLOR_BGR2GRAY)
@@ -54,7 +54,7 @@ def main():
                 img = cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1)
                 if img is None:
                     continue
-                res = oil_gland_features(img)
+                res = oil_gland_feature(img)
                 no_black_ratio.append(res)
                 text += str(res)+'\n'
             f=open('gland_'+prefix+str(i),'w')
