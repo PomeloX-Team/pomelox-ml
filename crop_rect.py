@@ -77,7 +77,7 @@ def crop_rect(img):
         y = int(y)
         radius = int(radius)
         center = x, y
-        width = int(radius // 1.75)
+        width = int(radius // 3)
         x_left = x - width
         y_left = y - width
         x_right = x + width
@@ -140,11 +140,18 @@ def main():
     error_list = []
     date = gen_date()
     print('Processing...')
+    ct = 0
     for prefix in symbol:
         for i in number:
             for j in date:
                 img_name = prefix + str(i) + '_' + j + '.JPG'
                 img_name_save = prefix + str(i) + j + '.JPG'
+                if ct == 0 and not cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1) is None:
+                    print('There is already file [press N or n] to exit or [any key] to continue.')
+                    k = input()
+                    ct += 1
+                if k == 'N' or k == 'n':
+                    exit(0)
                 print(img_name)
                 img = cv2.imread(CONST.IMG_PATH + img_name, 1)
                 res = crop_rect(img)
@@ -153,8 +160,7 @@ def main():
                     error_list.append(img_name)
                     continue
 
-                if cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1) is None:
-                    cv2.imwrite(CONST.IMG_SAVE_PATH + img_name, res)
+                cv2.imwrite(CONST.IMG_SAVE_PATH + img_name, res)
     p.print(error_list)
 
 
