@@ -1,0 +1,4 @@
+IMG_PATH = 'images/'
+IMG_SAVE_PATH = 'images_result/'
+RESULT_WIDTH = 300
+RESULT_HEIGHT = 300
