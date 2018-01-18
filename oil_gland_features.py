@@ -16,15 +16,18 @@ def pre_processing(img):
 
 def oil_gland_features(img):
     global p
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_filter = clahe(img)
+    gray = cv2.cvtColor(img_filter, cv2.COLOR_BGR2GRAY)
     gray_equ = equalization_gray(gray)
     mode = get_mode(gray_equ, 30, 250)
-    _, th = cv2.threshold(gray_equ, 70, 255, cv2.THRESH_BINARY)
+    _, th = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY)
+    th = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,15,2)
 
-    p.imshow('img', img)
+    # p.imshow('img', img)
+    p.imshow('img_filter', img_filter)
     p.imshow('img_th', th)
     p.imshow('img_gray', gray)
-    p.imshow('img_gray_equ', gray_equ)
+    # p.imshow('img_gray_equ', gray_equ)
     k = cv2.waitKey(0) & 0xff
     if k == ord('e'):
         exit(0)
@@ -39,12 +42,13 @@ def main():
     global p
     # symbol = ['A', 'B', 'C', 'D', 'E', 'F']
     symbol = ['A']
-    number = range(1, 2)
+    number = range(1, 3)
     error_list = []
     date = gen_date()
-    no_black_ratio = []
     for prefix in symbol:
         for i in number:
+            no_black_ratio = []
+            text = ''
             for j in date:
                 img_name = prefix + str(i) + '_' + j + '.JPG'
                 img = cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1)
@@ -52,9 +56,13 @@ def main():
                     continue
                 res = oil_gland_features(img)
                 no_black_ratio.append(res)
-    plt.scatter(no_black_ratio,range(1,len(no_black_ratio)+1,1))
-    plt.show()
-
+                text += str(res)+'\n'
+            f=open('gland_'+prefix+str(i),'w')
+            f.write(text)
+            f.close()
+            plt.scatter(no_black_ratio,range(1,len(no_black_ratio)+1,1))
+            plt.show()
+            print(no_black_ratio)
 
 if __name__ == '__main__':
     # p.change_mode(True)
