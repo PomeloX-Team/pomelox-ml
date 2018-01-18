@@ -23,12 +23,21 @@ class Preprocessing:
                 if row is '':
                     break
                 self.input.append(float(row))
-        p.print(self.input)
-        self.input = preprocessing.normalize(self.input)[0]
-        # self.input = np.array(self.input)
-        self.input = self.input[:,np.newaxis]
+                
+            self.input = preprocessing.normalize(self.input)[0]
+            self.input = self.input[:,np.newaxis]
+        elif col == 3:
+            while True:
+                row = f.readline()
+                if row is '':
+                    break
+                row = row.split(',')
+                self.input.append([float(row[0]),float(row[1]),float(row[2])])
+            self.input = np.array(self.input)
+            self.input = preprocessing.normalize(self.input)
         p.print(self.input)
         # return self.input
+
 
     def get_input(self):
         return self.input
@@ -40,4 +49,8 @@ class Preprocessing:
 
 
 if __name__ == '__main__':
+    # p.change_mode(True)
+    pp = Preprocessing()
+    pp.preprocessing('histogram_A1',3)
+    print(pp.get_input())
     pass
