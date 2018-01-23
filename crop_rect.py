@@ -22,8 +22,13 @@ def crop_rect(img):
         f = 0.075
 
     img = cv2.resize(img, (0, 0), fx=f, fy=f)
+
+    # img = clahe(img)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+
     row, col, _ = img.shape
-    crop_w = int(450 * f)
+    crop_w = int(250 * f)
     crop_h = int(250 * f)
 
     img = img[crop_h:-crop_h, crop_w:-crop_w]
@@ -54,7 +59,7 @@ def crop_rect(img):
     kernel = get_kernel('/')
     dilate = cv2.dilate(dilate, kernel, iterations=1)
     kernel = get_kernel('rect')
-    dilate = cv2.dilate(dilate, kernel, iterations=5)
+    dilate = cv2.dilate(dilate, kernel, iterations=5)   
     erode = cv2.erode(dilate, kernel, iterations=4)
 
     # find contour
@@ -84,7 +89,7 @@ def crop_rect(img):
         y_right = y + width
 
         radius_min = 52
-        radius_max = 100
+        radius_max = 105
         radius = radius + offset_radius
         p.print(str(radius_min) + " " +
                     str(radius) + " " + str(radius_max))
@@ -134,37 +139,47 @@ def crop_rect(img):
 
 
 def main():
-    # symbol = ['A', 'B', 'C', 'D', 'E', 'F']
-    symbol = ['A']
-    number = range(1, 3)
+    symbol = []
+    print('Put number of symbol: ')
+    n_symbol = input()
+    for i in range(0,int(n_symbol),1):
+        print('Put symbol #',i,' : ')
+        s = input()
+        print('Put order of symbol ex. 1-5: ')
+        o = input()
+        o1,o2 = o.split('-')
+        o1 = int(o1)
+        o2 = int(o2)
+        for j in range(o1,o2+1,1):
+            symbol.append(s+str(j))
+    print(symbol)
     error_list = []
     date = gen_date()
     print('Processing...')
     ct = 0
-    for prefix in symbol:
-        for i in number:
-            for j in date:
-                img_name = prefix + str(i) + '_' + j + '.JPG'
-                img_name_save = prefix + str(i) + j + '.JPG'
-                if ct == 0 and not cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1) is None:
-                    print('There is already file [press N or n] to exit or [any key] to continue.')
-                    k = input()
-                    ct += 1
-                if k == 'N' or k == 'n':
-                    exit(0)
-                print(img_name)
-                img = cv2.imread(CONST.IMG_PATH + img_name, 1)
-                res = crop_rect(img)
-
-                if res is None:
-                    error_list.append(img_name)
-                    continue
-
-                cv2.imwrite(CONST.IMG_SAVE_PATH + img_name, res)
+    k = 'y'
+    for s in symbol:
+        for j in date:
+            img_name = s + '_' + j + '.JPG'
+            img_name_save = s + j + '.JPG'
+            if ct == 0 and not cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1) is None:
+                print('There is already file [press N or n] to exit or [any key] to continue.')
+                k = input()
+                ct += 1
+            
+            if k == 'N' or k == 'n':
+                exit(0)
+            print(img_name)
+            img = cv2.imread(CONST.IMG_PATH + img_name, 1)
+            res = crop_rect(img)
+            if res is None:
+                error_list.append(img_name)
+                continue
+            cv2.imwrite(CONST.IMG_SAVE_PATH + img_name, res)
     p.print(error_list)
 
 
 if __name__ == '__main__':
-    p.change_mode(False)
+    # p.change_mode(True)
     main()
     pass
