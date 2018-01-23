@@ -36,10 +36,10 @@ def histogram_feature(img):
 def main():
     global p
     # symbol = ['A', 'B', 'C', 'D', 'E', 'F']
-    # symbol = ['A']
-    symbol = ['B']
+    symbol = ['A']
+    # symbol = ['B']
     # number = range(1,5)
-    number = range(1,2)
+    number = range(4,5)
     error_list = []
     header = 'b_mean, g_mean, r_mean, gland_ratio, output\n'
     date = gen_date()

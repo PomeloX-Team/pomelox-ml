@@ -11,19 +11,17 @@ from sklearn.pipeline import make_pipeline
 
 def main():
     pre = Preprocessing()
-    pre.preprocessing('histogram_A1',3)
+    pre.preprocessing('Pomelo_features_A_1_3')
     pomelo_X_train = pre.get_input()
     pomelo_y_train = pre.get_output()
 
   
 
     pre = Preprocessing()
-    pre.preprocessing('histogram_A2',3)
+    pre.preprocessing('Pomelo_features_A_4')
   
     
-    
     pomelo_X_test = pre.get_input()
-
     pomelo_y_test = pre.get_output()
 
     regr = linear_model.LinearRegression()
