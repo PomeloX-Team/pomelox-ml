@@ -8,33 +8,25 @@ from operator import itemgetter
 debug = False
 p = Print(debug)
 
-def circle_matching(mask_cir,mask,x,y,r):
+def circle_matching(mask_cir,mask):
     global p
+    r,c = mask_cir.shape
     found = 0
-    for i in range(x-r-5,x+r+5):
-        for j in range(y-r-5,y+r+5):
+
+    for i in range(r):
+        for j in range(c):
             if mask_cir[i,j] == mask[i,j] and mask_cir[i,j] == 255:
                 found += 1
+        # p.print(found)
     return found
 
-def draw_circle(image):
+def crop_rect(image):
     global p
-    image_default = image.copy()
-    img_size = 300
-    centroid = int(img_size / 2)
-    r_min = 80
-    r_max = 100
-    centroid_range = range(centroid-15,centroid+15)
-
-    blur = cv2.medianBlur(image,7)
-    clahe = clahe_by_Lab(blur)
-    image = clahe
-
     result = image.copy()
     row, col, ch = image.shape
-
-
-    img = cv2.resize(image,(img_size,img_size))
+    
+  
+    img = cv2.resize(image,(100,100))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
     result_s = img.copy()
@@ -42,10 +34,11 @@ def draw_circle(image):
     mask = np.uint8(np.zeros((row, col)))
 
     h, s, v = cv2.split(hsv) 
+   
+
 
     
     h_mode = get_mode(h)
-    print(h_mode)
     if h_mode is None:
         h_mode = 37
     print(h_mode)
@@ -55,46 +48,87 @@ def draw_circle(image):
     res_inrange_inv = 255 - res_inrange
     kernel = get_kernel('rect',(3,3))
     res_inrange_inv = cv2.dilate(res_inrange_inv, kernel, iterations=1)   
+    # center 75,75 - 125,125
+    # radius 50 - 85
+    
     result_matching = []
    
     
-    for x in centroid_range:
-        for y in centroid_range:
-            for r in range(r_min,r_max+1):
+    for x in range (45,55):
+        for y in range(45,55):
+            for r in range(28,37):
                 center = (x,y)
                 mask_cir = mask.copy()
-                cv2.circle(mask_cir, center, r, (255), 4)
-                number_of_match = circle_matching(mask_cir,res_inrange_inv,x,y,r)
+                cv2.circle(mask_cir, center, r, (255), 2)
+                number_of_match = circle_matching(mask_cir,res_inrange_inv)
                 result_matching.append([number_of_match,center,r])
-        print(x)
+                # print(result_matching[-1])
+                # p.imshow('mask',img_cp)
+                # cv2.waitKey(-1) 
                 
+        print(x)
     result_matching = sorted(result_matching, key=itemgetter(0),reverse=True)
-    print(result_matching[:1])
+    print(result_matching[:5])
     x_mean, y_mean, r_mean = [],[],[]
-    for res in result_matching[:1]:
+    for res in result_matching[:5]:
         _,center,r = res
         x,y = center
         x_mean.append(x)
         y_mean.append(y)
         r_mean.append(r)
         cv2.circle(result_s, center, r, (255, 0, 255), 1)
-        cv2.circle(image_default, (x*2,y*2), r*2, (255, 0, 255), 3)
+        cv2.circle(image, (x*4,y*4), r*4, (255, 0, 255), 3)
         cv2.circle(res_inrange_inv, center, r, (155, 155, 155), 1)
 
 
+    x = int(np.array(x_mean).mean())*4
+    y = int(np.array(y_mean).mean())*4
+    width = int(np.array(r_mean).mean()*1.5)
+    
+    x_left = x - width
+    y_left = y - width
+    x_right = x + width
+    y_right = y + width
 
+    row, col, ch = image.shape
+    mask_big = np.uint8(np.zeros((row, col)))
+    
+
+    cv2.rectangle(image, (x_left, y_left),
+                  (x_right, y_right), (0, 0, 0), 1)
+    mask_big = cv2.rectangle(mask_big, (x_left, y_left),
+                         (x_right, y_right), (255, 255, 255), -1)
+
+    result = cv2.bitwise_and(result, result, mask=mask_big)
+    
+    ####################
+
+    # p.imshow('cl1', cl1)    
+    # p.imshow('gray', gray)    
+    # p.imshow('mask', mask)
     p.imshow('res_inrange', res_inrange_inv)
+    # p.imshow('dilate', dilate)
+    # p.imshow('erode', erode)
+    # p.imshow('cnt', res_cnt)
+    p.imshow('result_s', result_s)
     p.imshow('result', result)
     p.imshow('mask', mask)
+    p.imshow('img', img)
     p.imshow('image', image)
     # p.imshow('img_hsv', hsv)
     k = cv2.waitKey(0)
     if k == ord('e'):
         exit(0)
    
+    result = result[y - width:y + width, x - width:x + width]
+    try:
+        result = cv2.resize(
+            result, (CONST.RESULT_WIDTH, CONST.RESULT_HEIGHT))
+    except:
+        result = None
     
     if not p.get_mode():
-        return image_default
+        return result
 
 
 def main():
@@ -121,8 +155,8 @@ def main():
     for s in symbol:
         for j in date:
             img_name = s + '_' + j + '.JPG'
-            img_name = 'A1_20171112.JPG'
-            if ct == 0 and not cv2.imread(CONST.IMG_CIRCLE_PATH + img_name, 1) is None:
+
+            if ct == 0 and not cv2.imread(CONST.IMG_SAVE_PATH + img_name, 1) is None:
                 print('There is already file [press N or n] to exit or [any key] to continue.')
                 k = input()
                 ct += 1
@@ -131,7 +165,7 @@ def main():
                 exit(0)
             print(img_name)
             img = cv2.imread(CONST.IMG_RESIZE_PATH + img_name, 1)
-            res = draw_circle(img)
+            res = crop_rect(img)
 
             # if not p.get_mode():
             #     continue
@@ -139,11 +173,11 @@ def main():
             if res is None:
                 error_list.append(img_name)
                 continue
-            cv2.imwrite(CONST.IMG_CIRCLE_PATH + img_name, res)
+            cv2.imwrite(CONST.IMG_SAVE_PATH + img_name, res)
     p.print(error_list)
 
 
 if __name__ == '__main__':
-    # p.change_mode(True)
+    p.change_mode(True)
     main()
     pass
