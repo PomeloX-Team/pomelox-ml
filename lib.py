@@ -35,7 +35,7 @@ class Print:
 
 
 def get_mode(channel, min=0, max=255):
-    # numpy return a contiguous flattened array.
+    # numpy return a contiguous flattened array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             tened array.
     data = channel.ravel()
     data = np.array(data)
 
@@ -80,8 +80,8 @@ def cut_contours(M, w, h, range_w, range_h):
     return False
 
 
-def brightness(imgBGR, brightnessValue):
-    hsv = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
+def brightness(img_bgr, brightnessValue):
+    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
     v = np.uint16(v)
     v = np.clip(v + brightnessValue, 0, 255)
@@ -90,8 +90,8 @@ def brightness(imgBGR, brightnessValue):
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
 
-def brightness_gray(imgGRAY, brightnessValue):
-    bgr = cv2.cvtColor(imgGRAY, cv2.COLOR_GRAY2BGR)
+def brightness_gray(img_gray, brightnessValue):
+    bgr = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
     v = np.uint16(v)
@@ -102,16 +102,16 @@ def brightness_gray(imgGRAY, brightnessValue):
     return cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
 
-def clip_v(imgBGR, min, max):
-    hsv = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2HSV)
+def clip_v(img_bgr, min, max):
+    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
     v = np.clip(v, min, max)
     hsv = cv2.merge((h, s, v))
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
 
-def equalization_bgr(imgBGR):
-    b, g, r = cv2.split(imgBGR)
+def equalization_bgr(img_bgr):
+    b, g, r = cv2.split(img_bgr)
     b = cv2.equalizeHist(b)
     g = cv2.equalizeHist(g)
     r = cv2.equalizeHist(r)
@@ -119,29 +119,42 @@ def equalization_bgr(imgBGR):
     return equBGR
 
 
-def equalization_hsv(imgHSV):
-    h, s, v = cv2.split(imgHSV)
+def equalization_hsv(img_hsv):
+    h, s, v = cv2.split(img_hsv)
     s = cv2.equalizeHist(s)
     v = cv2.equalizeHist(v)
     equHSV = cv2.merge((h, s, v))
     return equHSV
 
 
-def equalization_gray(imgGRAY):
-    equGRAY = cv2.equalizeHist(imgGRAY)
+def equalization_gray(img_gray):
+    equGRAY = cv2.equalizeHist(img_gray)
 
     return equGRAY
 
+def clahe_gray(img_gray):
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    resGRAY = clahe.apply(img_gray)
+    return resGRAY
 
-def clahe(imgBGR):
-    lab = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2Lab)
+def clahe_by_Lab(img_bgr):
+    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2Lab)
     l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     l = clahe.apply(l)
     lab = cv2.merge((l, a, b))
     resBGR = cv2.cvtColor(lab, cv2.COLOR_Lab2BGR)
     return resBGR
 
+def clahe_by_hsv(img_bgr):
+    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    v = clahe.apply(v)
+    s = clahe.apply(s)
+    hsv = cv2.merge((h, s, v))
+    resBGR = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return resBGR
 
 def stretching_hsv(hsv):
     h, s, v = cv2.split(hsv)
