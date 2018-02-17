@@ -28,11 +28,14 @@ def draw_circle(image):
     result = image.copy()
     row, col, ch = image.shape
 
-    img_size = 100
+    # img_size must divions 600 
+    img_size = 200
+    ratio = int(600/img_size)
+
     centroid = int(img_size / 2)
-    r_min = 25
-    r_max = 40
-    centroid_range = range(centroid-5,centroid+5)
+    r_min = 50
+    r_max = 80
+    centroid_range = range(centroid-10,centroid+10)
 
     blur = cv2.medianBlur(image,3)
     clahe = clahe_by_Lab(blur)
@@ -46,12 +49,12 @@ def draw_circle(image):
     h, s, v = cv2.split(hsv) 
     h_mode = get_mode(h)
     
-    lower_bound = np.array([h_mode - 12, 0, 0], dtype=np.uint8)
-    upper_bound = np.array([h_mode + 12, 255, 255], dtype=np.uint8)
+    lower_bound = np.array([h_mode - 10, 0, 0], dtype=np.uint8)
+    upper_bound = np.array([h_mode + 10, 255, 255], dtype=np.uint8)
     res_inrange = cv2.inRange(hsv, lower_bound, upper_bound)
     res_inrange_inv = 255 - res_inrange
 
-    kernel = get_kernel('rect',(3,3))
+    kernel = get_kernel('plus',(3,3))
     res_inrange_inv = cv2.dilate(res_inrange_inv, kernel, iterations=1)   
     
     result_matching = []
@@ -66,14 +69,27 @@ def draw_circle(image):
         print(x)
                 
     result_matching = sorted(result_matching, key=itemgetter(0),reverse=True)
-    print(result_matching[:5])
+    print(result_matching[:10])
     
     x_mean, y_mean, r_mean = [],[],[]
-    for res in result_matching[:5]:
+    
+    for res in result_matching[:10]:
         _,center,r = res
         x,y = center
-        cv2.circle(result, (x*6,y*6), r*6, (255, 255, 255), 6)
-        cv2.circle(res_inrange_inv, center, r, (155, 155, 155), 2)
+        x_mean.append(x)
+        y_mean.append(y)
+        r_mean.append(r)
+    
+    x = np.array(x_mean).mean() 
+    y = np.array(y_mean).mean() 
+    r = np.array(r_mean).mean() 
+
+    x = int(x)
+    y = int(y)
+    r = int(r)
+    
+    cv2.circle(result, (x*ratio,y*ratio), r*ratio, (255, 255, 255), 3)
+    cv2.circle(res_inrange_inv, center, r, (155, 155, 155), 2)
 
     p.imshow('res_inrange', res_inrange_inv)
     p.imshow('image', result)
