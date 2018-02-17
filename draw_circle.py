@@ -31,7 +31,7 @@ def draw_circle(image):
     img_size = 100
     centroid = int(img_size / 2)
     r_min = 25
-    r_max = 35
+    r_max = 40
     centroid_range = range(centroid-5,centroid+5)
 
     blur = cv2.medianBlur(image,3)
