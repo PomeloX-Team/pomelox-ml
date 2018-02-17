@@ -1,18 +1,14 @@
+'''
+    File name: lib.py
+    Author: PomeloX
+    Date created: 1/16/2018
+    Date last modified: 2/17/2018
+    Python Version: 3.6.1
+'''
+
 import cv2
-import statistics
 import numpy as np
-
-
-def gen_date():
-    date = []
-    for i in range(1, 31, 1):
-        str_date = '201711' + str(i).zfill(2)
-        date.append(str_date)
-
-    for i in range(1, 26, 1):
-        str_date = '201712' + str(i).zfill(2)
-        date.append(str_date)
-    return date
+import operator
 
 
 class Print:
@@ -34,18 +30,41 @@ class Print:
         return self.debug_mode
 
 
+def gen_date():
+    date = []
+    for i in range(1, 31, 1):
+        str_date = '201711' + str(i).zfill(2)
+        date.append(str_date)
+
+    for i in range(1, 26, 1):
+        str_date = '201712' + str(i).zfill(2)
+        date.append(str_date)
+    return date
+
+
 def get_mode(channel, min=0, max=255):
     # numpy return a contiguous flattened array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             tened array.
-    data = channel.ravel()
-    data = np.array(data)
+    data = np.array(channel)
+    data = data.ravel()
+    data = list(data)
+    count = {}
 
-    if len(data.shape) > 1:
-        data = data.ravel()
-    try:
-        mode = statistics.mode(data)
-    except ValueError:
-        mode = None
-    return mode
+    for i in range(min, max + 1):
+        count[i] = data.count(i)
+
+    count = sorted(count.items(), key=operator.itemgetter(1), reverse=True)
+
+    max = count[0][1]
+    print(count)
+    mode = []
+    for ct in count:
+        if ct[1] < max:
+            break
+        mode.append(ct[0])
+        print(mode, max)
+    mode = np.array(mode)
+    mode = mode.mean()
+    return int(mode)
 
 
 def get_kernel(shape='rect', ksize=(5, 5)):
@@ -63,21 +82,6 @@ def get_kernel(shape='rect', ksize=(5, 5)):
         return np.uint8(kernel)
     else:
         return None
-
-
-def cut_contours(M, w, h, range_w, range_h):
-    cx = None
-    cy = None
-    try:
-        cx = int(M['m10'] / M['m00'])
-        cy = int(M['m01'] / M['m00'])
-    except:
-        print('err')
-    if cx is None:
-        return True
-    if cx <= range_w or cy <= range_h or cx >= w - range_w or cy >= h - range_h:
-        return True
-    return False
 
 
 def brightness(img_bgr, brightnessValue):
@@ -102,14 +106,6 @@ def brightness_gray(img_gray, brightnessValue):
     return cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
 
-def clip_v(img_bgr, min, max):
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
-    v = np.clip(v, min, max)
-    hsv = cv2.merge((h, s, v))
-    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
-
 def equalization_bgr(img_bgr):
     b, g, r = cv2.split(img_bgr)
     b = cv2.equalizeHist(b)
@@ -132,10 +128,12 @@ def equalization_gray(img_gray):
 
     return equGRAY
 
+
 def clahe_gray(img_gray):
     clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     resGRAY = clahe.apply(img_gray)
     return resGRAY
+
 
 def clahe_by_Lab(img_bgr):
     lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2Lab)
@@ -146,6 +144,7 @@ def clahe_by_Lab(img_bgr):
     resBGR = cv2.cvtColor(lab, cv2.COLOR_Lab2BGR)
     return resBGR
 
+
 def clahe_by_hsv(img_bgr):
     hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
@@ -155,52 +154,3 @@ def clahe_by_hsv(img_bgr):
     hsv = cv2.merge((h, s, v))
     resBGR = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     return resBGR
-
-def stretching_hsv(hsv):
-    h, s, v = cv2.split(hsv)
-
-    if s.min() > 0:
-        s *= int(round(255.0 / (s.max() - s.min())))
-    if v.min() > 0:
-        v *= int(round(255.0 / (v.max() - v.min())))
-    hsv = cv2.merge((h, s, v))
-    return hsv
-
-
-def stretching_bgr(bgr):
-    b, g, r = cv2.split(bgr)
-    b -= b.min()
-    b *= int(round(255.0 / (b.max() - b.min())))
-    g -= g.min()
-    g *= int(round(255.0 / (g.max() - g.min())))
-    r -= r.min()
-    r *= int(round(255.0 / (r.max() - r.min())))
-
-    img = cv2.merge((b, g, r))
-    return img
-
-
-def stretching(img):
-
-    b, g, r = cv2.split(img)
-    b -= b.min()
-    b *= int(round(255.0 / (b.max() - b.min())))
-    g -= g.min()
-    g *= int(round(255.0 / (g.max() - g.min())))
-    r -= r.min()
-    r *= int(round(255.0 / (r.max() - r.min())))
-
-    img = cv2.merge((b, g, r))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(img)
-
-    s -= s.min()
-    s *= int(round(255.0 / (s.max() - s.min())))
-
-    v -= v.min()
-    v *= int(round(255.0 / (v.max() - v.min())))
-
-    img = cv2.merge((h, s, v))
-    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-
-    return img

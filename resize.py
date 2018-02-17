@@ -1,8 +1,8 @@
 '''
     File name: resize.py
     Author: PomeloX
-    Date created: 1/2/2018
-    Date last modified: 17/2/2018
+    Date created: 2/1/2018
+    Date last modified: 2/17/2018
     Python Version: 3.6.1
 '''
 
