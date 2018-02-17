@@ -30,6 +30,32 @@ class Print:
         return self.debug_mode
 
 
+def get_symbol_list():
+    symbol_list = []
+    print('=== Example A1,A2 ===\nThe number of symbol is 1\nThe symbol #1 is A\nThe ranges of symbol A is 1-2\n')
+    print('\n=== Example A1,B1 ===\nThe number of symbol is 2\nThe symbol #1 is A\nThe ranges of symbol A is 1-1\nThe symbol #2 is B\nThe ranges of symbol B is 1-1\n')
+
+    print('Put the number of symbol : ')
+    n_symbol = input()
+
+    for i in range(0, int(n_symbol), 1):
+        print('Put the symbol #', i + 1, ': ')
+        symbol = input()
+
+        print('Put the ramges of symbol', symbol, ': ')
+        symbol_range = input()
+
+        range1, range2 = symbol_range.split('-')
+        range1, range2 = int(range1), int(range2) + 1
+
+        for j in range(range1, range2):
+            symbol_list.append(symbol + str(j))
+
+    print('\nResize the image(s) have a prefix :', symbol_list, '\n')
+
+    return symbol_list
+
+
 def gen_date():
     date = []
     for i in range(1, 31, 1):
