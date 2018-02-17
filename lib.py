@@ -81,7 +81,6 @@ def get_mode(channel, min=0, max=255):
     count = sorted(count.items(), key=operator.itemgetter(1), reverse=True)
 
     max = count[0][1]
-    print(count)
     mode = []
     for ct in count:
         if ct[1] < max:
@@ -137,22 +136,21 @@ def equalization_bgr(img_bgr):
     b = cv2.equalizeHist(b)
     g = cv2.equalizeHist(g)
     r = cv2.equalizeHist(r)
-    equBGR = cv2.merge((b, g, r))
-    return equBGR
+    equ_bgr = cv2.merge((b, g, r))
+    return equ_bgr
 
 
 def equalization_hsv(img_hsv):
     h, s, v = cv2.split(img_hsv)
     s = cv2.equalizeHist(s)
     v = cv2.equalizeHist(v)
-    equHSV = cv2.merge((h, s, v))
-    return equHSV
+    equ_hsv = cv2.merge((h, s, v))
+    return equ_hsv
 
 
 def equalization_gray(img_gray):
-    equGRAY = cv2.equalizeHist(img_gray)
-
-    return equGRAY
+    equ_gray = cv2.equalizeHist(img_gray)
+    return equ_gray
 
 
 def clahe_gray(img_gray):
@@ -167,8 +165,8 @@ def clahe_by_Lab(img_bgr):
     clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     l = clahe.apply(l)
     lab = cv2.merge((l, a, b))
-    resBGR = cv2.cvtColor(lab, cv2.COLOR_Lab2BGR)
-    return resBGR
+    res_bgr = cv2.cvtColor(lab, cv2.COLOR_Lab2BGR)
+    return res_bgr
 
 
 def clahe_by_hsv(img_bgr):
@@ -178,5 +176,5 @@ def clahe_by_hsv(img_bgr):
     v = clahe.apply(v)
     s = clahe.apply(s)
     hsv = cv2.merge((h, s, v))
-    resBGR = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-    return resBGR
+    res_bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return res_bgr
