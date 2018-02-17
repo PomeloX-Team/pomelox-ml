@@ -20,7 +20,6 @@ def resize(img):
 
 
 if __name__ == '__main__':
-    symbol_list = []
     print('>' * 10, 'Reize and crop image(s) to square image(s)', '<' * 10, '\n')
     symbol_list = get_symbol_list()
 
