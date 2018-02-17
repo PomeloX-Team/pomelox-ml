@@ -1,3 +1,11 @@
+'''
+    File name: features.py
+    Author: PomeloX
+    Date created: 1/22/2018
+    Date last modified: 2/17/2018
+    Python Version: 3.6.1
+'''
+
 import cv2
 from lib import *
 import numpy as np
@@ -77,8 +85,9 @@ def main():
             gland_ratio.append(res[0])
 
         if not p.get_mode():
-            plt.plot(out, gland_ratio)
-            plt.show()
+            plt.plot(out, gland_ratio)        
+    if not p.get_mode():
+        plt.show()
 
 
 if __name__ == '__main__':

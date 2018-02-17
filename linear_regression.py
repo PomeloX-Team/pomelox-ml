@@ -1,3 +1,11 @@
+'''
+    File name: linear_regression.py
+    Author: PomeloX
+    Date created: 1/18/2018
+    Date last modified: 2/15/2018
+    Python Version: 3.6.1
+'''
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -9,22 +17,15 @@ from preprocessing_data import *
 
 def main():
     pre = Preprocessing()
-    # pre.preprocessing('Pomelo_features_A_1_3')
-    pre.preprocessing('Pomelo_features_A_B_1_3.csv')
-    # pre.preprocessing('Pomelo_features_A_2_4')
-    # pre.preprocessing('Pomelo_features_A_1_3_new')
+    pre.preprocessing('Pomelo_features_A_1_3')
+
     pomelo_X_train = pre.get_input()
     pomelo_y_train = pre.get_output()
     pomelo_plot_data = pre.get_data_plot()
   
 
     pre = Preprocessing()
-    # pre.preprocessing('Pomelo_features_A_1')
-    # pre.preprocessing('Pomelo_features_A_4')
-    pre.preprocessing('Pomelo_features_A_4.csv')
-    # pre.preprocessing('Pomelo_features_B_1.csv')
-    # pre.preprocessing('Pomelo_features_A_4_new')
-  
+    pre.preprocessing('Pomelo_features_A_4')  
     
     pomelo_X_test = pre.get_input()
     pomelo_y_test = pre.get_output()
