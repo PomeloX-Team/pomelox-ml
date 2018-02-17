@@ -1,7 +1,7 @@
 '''
-    File name: draw_circle.py
+    File name: get_oil_gland.py
     Author: PomeloX
-    Date created: 2/1/2018
+    Date created: 2/13/2018
     Date last modified: 2/17/2018
     Python Version: 3.6.1
 '''
