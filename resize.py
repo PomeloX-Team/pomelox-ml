@@ -41,7 +41,7 @@ if __name__ == '__main__':
         for j in range(range1, range2):
             symbol_list.append(symbol + str(j))
 
-    print('\nResize the image(s) have a prefix :', symbol_list,'\n')
+    print('\nResize the image(s) have a prefix :', symbol_list, '\n')
 
     date = gen_date()
     overwrite = False
@@ -49,17 +49,17 @@ if __name__ == '__main__':
     for s in symbol_list:
         for j in date:
             img_name = s + '_' + j + '.JPG'
-            print(img_name,'is processing...\n')
+            print(img_name, 'is processing...\n')
             img = cv2.imread(CONST.IMG_PATH + img_name, 1)
 
             if img is None:
-                print('Cannot read image: ',img_name)
+                print('Cannot read image: ', img_name)
                 continue
 
             res = resize(img)
 
             if res is None:
-                print('Cannot resize image: ',img_name)
+                print('Cannot resize image: ', img_name)
                 continue
 
             if (not overwrite) and (not cv2.imread(CONST.IMG_RESIZE_PATH + img_name, 1) is None):
