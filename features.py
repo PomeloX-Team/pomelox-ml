@@ -11,6 +11,7 @@ from lib import *
 import numpy as np
 import constant as CONST
 import matplotlib.pyplot as plt
+import math
 
 p = Print(False)
 
@@ -19,7 +20,6 @@ def oil_gland_feature(img):
     global p
 
     res_cnt = img.copy()
-
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     _, th = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
@@ -28,19 +28,51 @@ def oil_gland_feature(img):
 
     cv2.drawContours(res_cnt, cnts, -1, (0, 0, 255), 1)
 
-    ct = 0
+    count = 0
     r_mean = []
+    area_mean = []
+    area_ratio = []
+    radius = []
     for cnt in cnts:
         (x, y), r = cv2.minEnclosingCircle(cnt)
+        cnt_area = cv2.contourArea(cnt)
+        cir_area = math.pi*r*r
+        area_mean.append(cnt_area)
+        area_ratio.append(cnt_area / cir_area)
+        if r > 40:
+            continue
+        
+        if cnt_area / cir_area >= 0.6:
+            radius.append(r)
         x = int(x)
         y = int(y)
         r = int(r)
         r_mean.append(r)
-        cv2.circle(res_cnt, (x, y), r, (0, 255, 0), -1)
-
+        count += 1
+        cv2.circle(res_cnt, (x, y), r, (0, 255, 0), 1)
+    
+    # print(r_mean)
+    radius = np.array(radius)
+    radius = np.cov(radius)/25
+    r_mean_sorted = sorted(r_mean)
     r_mean = np.array(r_mean).mean()
+    area_ratio = np.array(area_ratio).mean()
 
-    p.imshow('img_th', gray)
+    area_mean = np.array(area_mean).mean()
+    p.print(area_ratio)
+    min = r_mean_sorted[0]
+    max = r_mean_sorted[-1]
+    divide = (max-min)/3    
+    ct = [0,0,0]
+    for data in r_mean_sorted:
+        if data <= min+divide:
+            ct[0] += 1
+        elif data <= max-divide:
+            ct[1] += 1
+        else:
+            ct[2] += 1
+    # res_cnt = cv2.addWeighted(res_cnt,0.5,res_cnt,0.5,0)
+    # p.imshow('img_th', gray)
     p.imshow('res_cnt', res_cnt)
 
     k = cv2.waitKey(0) & 0xff
@@ -48,8 +80,9 @@ def oil_gland_feature(img):
         exit(0)
 
     if not p.get_mode():
-        return [r_mean]
-
+        return [area_ratio,radius]
+        # return [ct[1]]
+    
 
 def main():
     global p
@@ -82,10 +115,18 @@ def main():
                 print('Cannot get oil gland from the image: ', img_name)
                 continue
 
-            gland_ratio.append(res[0])
+            gland_ratio.append(res[0:2])
 
         if not p.get_mode():
+            # # gland_ratio[0] = gland_ratio[0] / np.linalg.norm(gland_ratio[0])
+            # gland_ratio[1] = gland_ratio[1] / np.linalg.norm(gland_ratio[1])
+            # gland_ratio = np.array(gland_ratio)
+            # gland_ratio[1] = [1]*len(gland_ratio[1]) - gland_ratio[1]
             plt.plot(out, gland_ratio)        
+            # plt.plot(out, gland_ratio)        
+            # plt.legend(['1'], loc='upper left')
+        plt.legend(['ratio_area','invert_radius_cov'], loc='upper left')
+
     if not p.get_mode():
         plt.show()
 
