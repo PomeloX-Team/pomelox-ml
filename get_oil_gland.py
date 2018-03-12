@@ -1,8 +1,8 @@
 '''
     File name: get_oil_gland.py
     Author: PomeloX
-    Date created: 2/13/2018
-    Date last modified: 2/17/2018
+    Date created: 2018/2/13
+    Date last modified: 2018/03/12
     Python Version: 3.6.1
 '''
 
@@ -26,7 +26,7 @@ def get_oil_gland(img, img_resize):
     mask = np.uint8(np.zeros((row, col)))
 
     # White value of bgr
-    lower_bound = np.array([240, 240, 240], dtype=np.uint8)
+    lower_bound = np.array([230, 230, 230], dtype=np.uint8)
     upper_bound = np.array([255, 255, 255], dtype=np.uint8)
     res_inrange = cv2.inRange(img, lower_bound, upper_bound)
 
@@ -35,13 +35,14 @@ def get_oil_gland(img, img_resize):
     circles = []
 
     res_x, res_y, res_r = 0, 0, 0
+    r_min = 40
 
     for cnt in cnts:
         (x, y), r = cv2.minEnclosingCircle(cnt)
         x = int(x)
         y = int(y)
         r = int(r)
-        r_min = 100
+        cv2.circle(img, (x, y), r, (0, 255, 0), 1)
 
         if r < r_min:
             continue
@@ -54,49 +55,28 @@ def get_oil_gland(img, img_resize):
     if res_r == 0:
         return None
 
-    res_r = int(res_r*0.95)
-    cv2.circle(res_cnt, (res_x, res_y), res_r, (0, 0, 255), 2)
-
-    mask = cv2.rectangle(mask, (0, 0), (col, row), (0), -1)
-    mask = cv2.circle(mask, (res_x, res_y), res_r, (255), -1)
+    w = int(0.7 * res_r)
+    img_rect = img[res_y - w:res_y + w, res_x - w:res_x + w]
+    img_rect = cv2.resize(img_rect, (250, 250))
 
     # Use Blur and CLAHE with BGR image
-    blur = cv2.medianBlur(img_resize, 3)
+    blur = cv2.medianBlur(img_rect, 3)
     clahe = clahe_by_Lab(blur)
+    clahe = adjust_gamma_Lab(clahe)
 
     gray = cv2.cvtColor(clahe, cv2.COLOR_BGR2GRAY)
-    # Invert B/W
-    gray = 255 - gray
+    equ = equalization_gray(gray)
+    equ = clahe_gray(equ)
+    equ_mode = get_mode(equ)
+    equ_mode = int(equ_mode * 0.3)
 
-    # CLAHE Grayscale
-    gray_clahe = clahe_gray(gray)
+    _, th = cv2.threshold(equ, equ_mode, 255, cv2.THRESH_BINARY_INV)
 
-    # Clear noise by make gray to black
-    gray_mean = np.array(gray_clahe).mean()
-    gray_clahe[gray_clahe < gray_mean] = 0
-
-    equ = equalization_gray(gray_clahe)
-
-    _, result = cv2.threshold(equ, gray_mean * 1.2, 255, cv2.THRESH_BINARY)
-
-    result = cv2.bitwise_and(result, result, mask=mask)
-    result = result[res_y - res_r:res_y + res_r, res_x - res_r:res_x + res_r]
-    result = cv2.resize(result, (CONST.RESULT_WIDTH, CONST.RESULT_HEIGHT))
-
-    p.imshow('blur', blur)
-    p.imshow('clahe', clahe)
     p.imshow('gray', gray)
-    p.imshow('gray_clahe', gray_clahe)
-    p.imshow('gray_equ', equ)
-    p.imshow('res_inrange', res_inrange)
-    p.imshow('result', result)
-
-    k = cv2.waitKey(0)
-    if k == ord('e'):
-        exit(0)
-
-    if not p.get_mode():
-        return result
+    p.imshow('equ', equ)
+    p.imshow('th', th)
+    cv2.waitKey(-1)
+    return th
 
 
 def main():
@@ -111,7 +91,9 @@ def main():
             img_name = s + '_' + j + '.JPG'
             print(img_name, 'is processing...\n')
             img = cv2.imread(CONST.IMG_CIRCLE_PATH + img_name, 1)
+            img = cv2.resize(img, (0, 0), fx=0.5, fy=0.5)
             img_resize = cv2.imread(CONST.IMG_RESIZE_PATH + img_name, 1)
+            img_resize = cv2.resize(img_resize, (0, 0), fx=0.5, fy=0.5)
 
             if img is None:
                 print('Cannot read image: ', img_name)
