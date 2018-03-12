@@ -1,8 +1,8 @@
 '''
     File name: lib.py
     Author: PomeloX
-    Date created: 1/16/2018
-    Date last modified: 2/17/2018
+    Date created: 2018/1/16
+    Date last modified: 2018/03/12
     Python Version: 3.6.1
 '''
 
@@ -73,6 +73,7 @@ def get_mode(channel, min=0, max=255):
     data = np.array(channel)
     data = data.ravel()
     data = list(data)
+
     count = {}
 
     for i in range(min, max + 1):
@@ -178,3 +179,30 @@ def clahe_by_hsv(img_bgr):
     hsv = cv2.merge((h, s, v))
     res_bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     return res_bgr
+
+
+def adjust_gamma(image, gamma=1.0):
+        # build a lookup table mapping the pixel values [0, 255] to
+        # their adjusted gamma values
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255
+                      for i in np.arange(0, 256)]).astype("uint8")
+
+    # apply gamma correction using the lookup table
+    return cv2.LUT(image, table)
+
+
+def adjust_gamma_Lab(image):
+    Lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
+    L, a, b = cv2.split(Lab)
+    L_mean = np.mean(L)
+    L_mean = L_mean / 50.0
+    gamma = L_mean
+    # build a lookup table mapping the pixel values [0, 255] to
+    # their adjusted gamma values
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255
+                      for i in np.arange(0, 256)]).astype("uint8")
+
+    # apply gamma correction using the lookup table
+    return cv2.LUT(image, table)
