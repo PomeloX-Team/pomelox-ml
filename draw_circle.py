@@ -11,17 +11,32 @@ from lib import *
 import numpy as np
 import constant as CONST
 from operator import itemgetter
+import statistics
 
 debug = False
 p = Print(debug)
 
-def circle_matching(mask_cir,mask,x,y,r):
+def get_mode(channel, min=0, max=255):
+    # numpy return a contiguous flattened array.
+    data = channel.ravel()
+    data = np.array(data)
+
+    if len(data.shape) > 1:
+        data = data.ravel()
+    try:
+        mode = statistics.mode(data)
+    except ValueError:
+        mode = None
+    return mode
+
+def circle_matching(mask_cir, mask, x, y, r):
     found = 0
-    for i in range(x-r-5,x+r+5):
-        for j in range(y-r-5,y+r+5):
-            if mask_cir[i,j] == mask[i,j] and mask_cir[i,j] == 255:
+    for i in range(x - r - 5, x + r + 5):
+        for j in range(y - r - 5, y + r + 5):
+            if mask_cir[i, j] == mask[i, j] and mask_cir[i, j] == 255:
                 found += 1
     return found
+
 
 def draw_circle(image):
     global p
@@ -29,15 +44,15 @@ def draw_circle(image):
     row, col, ch = image.shape
 
     # img_size must divions 600 
-    img_size = 200
-    ratio = int(600/img_size)
+    img_size = 100
+    ratio = int(CONST.RESULT_WIDTH/img_size)
 
     centroid = int(img_size / 2)
-    r_min = 50
-    r_max = 80
+    r_min = centroid - 25
+    r_max = centroid - 15
     centroid_range = range(centroid-10,centroid+10)
 
-    blur = cv2.medianBlur(image,3)
+    blur = cv2.medianBlur(image,5)
     clahe = clahe_by_Lab(blur)
     image = clahe
 
@@ -54,7 +69,7 @@ def draw_circle(image):
     res_inrange = cv2.inRange(hsv, lower_bound, upper_bound)
     res_inrange_inv = 255 - res_inrange
 
-    kernel = get_kernel('plus',(3,3))
+    kernel = get_kernel('plus',(5,5))
     res_inrange_inv = cv2.dilate(res_inrange_inv, kernel, iterations=1)   
     
     result_matching = []
@@ -88,8 +103,8 @@ def draw_circle(image):
     y = int(y)
     r = int(r)
     
-    cv2.circle(result, (x*ratio,y*ratio), r*ratio, (255, 255, 255), 3)
-    cv2.circle(res_inrange_inv, center, r, (155, 155, 155), 2)
+    cv2.circle(result, (x*ratio,y*ratio), r*ratio, (255, 255, 255), int(ratio/2))
+    cv2.circle(res_inrange_inv, center, r, (155, 155, 155), int(ratio/2))
 
     p.imshow('res_inrange', res_inrange_inv)
     p.imshow('image', result)
@@ -114,7 +129,8 @@ def main():
             img_name = s + '_' + j + '.JPG'
             print(img_name, 'is processing...\n')
             img = cv2.imread(CONST.IMG_RESIZE_PATH + img_name, 1)
-
+            if int(j) <= 20171111 and s == 'B1':
+                continue
             if img is None:
                 print('Cannot read image: ', img_name)
                 continue
