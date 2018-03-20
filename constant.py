@@ -4,3 +4,4 @@ IMG_RESIZE_PATH = 'images_resize/'
 IMG_CIRCLE_PATH = 'images_circle/'
 RESULT_WIDTH = 1600
 RESULT_HEIGHT = 1600
+RECT_SIZE = 600
