@@ -9,6 +9,7 @@
 import cv2
 import numpy as np
 import operator
+import statistics
 
 
 class Print:
@@ -69,36 +70,25 @@ def gen_date():
 
 
 def get_mode(channel, min=0, max=255):
-    # numpy return a contiguous flattened array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             tened array.
-    data = np.array(channel)
-    data = data.ravel()
-    data = list(data)
+    # numpy return a contiguous flattened array.
+    data = channel.ravel()
+    data = np.array(data)
 
-    count = {}
-
-    for i in range(min, max + 1):
-        count[i] = data.count(i)
-
-    count = sorted(count.items(), key=operator.itemgetter(1), reverse=True)
-
-    max = count[0][1]
-    mode = []
-    for ct in count:
-        if ct[1] < max:
-            break
-        mode.append(ct[0])
-        print(mode, max)
-    mode = np.array(mode)
-    mode = mode.mean()
-    return int(mode)
+    if len(data.shape) > 1:
+        data = data.ravel()
+    try:
+        mode = statistics.mode(data)
+    except ValueError:
+        mode = None
+    return mode
 
 
-def get_kernel(shape='rect', ksize=(5, 5)):
-    if shape == 'rect':
+def get_kernel(shape='[]', ksize=(5, 5)):
+    if shape == '[]':
         return cv2.getStructuringElement(cv2.MORPH_RECT, ksize)
-    elif shape == 'ellipse':
+    elif shape == '0':
         return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
-    elif shape == 'plus':
+    elif shape == '+':
         return cv2.getStructuringElement(cv2.MORPH_CROSS, ksize)
     elif shape == '\\':
         kernel = np.diag([1] * ksize[0])
