@@ -6,13 +6,13 @@
     Python Version: 3.6.1
 '''
 
+import math
 import cv2 as cv
 import numpy as np
-from matplotlib import pyplot as plt
 from lib import *
 import constant as CONST
 from operator import itemgetter
-import math
+from matplotlib import pyplot as plt
 
 debug = False
 p = Print(debug)
@@ -23,74 +23,126 @@ def mask_only_circle(img):
     res = np.zeros((row, col), dtype=np.uint8)
     blur = cv.medianBlur(img, 5)
     clahe = clahe_by_Lab(blur)
-    equ = equalization_bgr(clahe)
-    gray = cv.cvtColor(equ, cv.COLOR_BGR2GRAY)
 
-    gray_mode = get_mode(gray)
-    if gray_mode == None:
-        gray_mode = 40
-    gray_mode = max(40, int(gray_mode * 0.3))
-    print(gray_mode)
-    _, th = cv.threshold(gray, gray_mode, 255, cv.THRESH_BINARY_INV)
+    # equ = equalization_bgr(clahe)
+    gray = cv.cvtColor(clahe, cv.COLOR_BGR2GRAY)
+    gray2color = color_mapping(gray)
+    print(gray2color.shape)
+    # color2hsv = cv.cvtColor(gray2color,cv.COLOR_BGR2HSV)
+    # p.imshow_float('gray.copy',gray.copy())
+    lower = np.array([100,0,0],dtype=np.uint8)
+    upper = np.array([255,255,0],dtype=np.uint8)
+    mask = cv.inRange(gray2color,lower,upper) 
+
+    lower = np.array([0,0,0],dtype=np.uint8)
+    upper = np.array([255,0,255],dtype=np.uint8)
+    mask += cv.inRange(gray2color,lower,upper) 
+    
+    lower = np.array([0,0,250],dtype=np.uint8)
+    upper = np.array([0,0,255],dtype=np.uint8)
+    mask -= cv.inRange(gray2color,lower,upper)
+
+    # p.imshow('color2hsv',color2hsv)
+    a = gray2color & cv.cvtColor(mask,cv.COLOR_GRAY2BGR)
+    p.imshow('gray+mask',a)
+
+    _, th = cv.threshold(mask,127,255,cv.THRESH_BINARY_INV)
+    mask = th.copy() 
+    _, cnts, _ = cv.findContours(
+            th, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+
+    for cnt in cnts:
+        rect = (x,y), (w, h), angle  = cv.minAreaRect(cnt)
+        box = cv.boxPoints(rect)
+        box = np.int0(box)
+        cv.drawContours(gray2color,[box],0,(255,255,255),2)
+        area = cv.contourArea(cnt)
+        if w <=0 or h <= 0 :
+            continue
+        if float(w)/h >= 1.3 or float(w)/h <= 0.7 or area/(w*h) <= 0.5:     
+            x,y,w,h = cv.boundingRect(cnt)
+            roi_mask = mask[y:y+h, x:x+w]
+            roi_gray2color = gray2color[y:y+h, x:x+w]
+            
+            lower = np.array([0,255,0],dtype=np.uint8)
+            upper = np.array([255,255,255],dtype=np.uint8)
+            mask_tmp = cv.inRange(roi_gray2color,lower,upper)
+
+            roi_mask -= mask_tmp
+
+            mask_tmp = mask.copy()
+            mask_tmp[y:y+h, x:x+w] = roi_mask
+            
+
+            rect = cv.minAreaRect(cnt)
+            box = cv.boxPoints(rect)
+            box = np.int0(box)
+            cv.drawContours(mask_tmp,[box],0,(255),300)
+            cv.drawContours(gray2color,[box],0,(0,0,0),2)
+            mask = mask & mask_tmp
 
 
-    dist_transform = cv.distanceTransform(th, cv.DIST_L2, 3)
-    print(dist_transform.max())
 
-    dist_list = [float("%.3f" % (b*0.001)) for b in range(100,700,5)]
+    p.imshow('gray2color',gray2color)
+    p.imshow('mask',mask)
+    # gray_mode = get_mode(gray)
+    # if gray_mode == None:
+    #     gray_mode = 40
+    # gray_mode = max(40, int(gray_mode * 0.3))
+    # print(gray_mode)
+    # _, th = cv.threshold(gray, gray_mode, 255, cv.THRESH_BINARY_INV)
 
-    for i in dist_list:
-        print('dist', i)
-        ret, th1 = cv2.threshold(
-            dist_transform, i * dist_transform.max(), 255, 0)
-        # plt.imshow(dist_transform)
-        # plt.show()
-        # k=cv.waitKey(-1)
-        # plt.close()
-        th1 = np.uint8(th1)
-        _, cnts, _ = cv.findContours(
-            th1, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
 
-        for cnt in cnts:
-            (x, y), (width, height), angle = cv2.minAreaRect(cnt)
+    # dist_transform = cv.distanceTransform(th, cv.DIST_L2, 3)
+    # print(dist_transform.max())
 
-            if width > 0 and height > 0 and not 0.8-(i/2.0) <= (width * 1.0) / height <= 1.2+(i/2.0):
-                continue
-            (x, y), r = cv.minEnclosingCircle(cnt)
+    # dist_list = [float("%.3f" % (b*0.001)) for b in range(100,700,5)]
+    # p.imshow_float('dist_transform',dist_transform)
 
-            area = cv2.contourArea(cnt)
-            area_cir = math.pi * r * r
-            area_ratio = (area * 1.0) / area_cir
-            if area_ratio < 0.7-(i/2.0):
-                continue
+    # for i in dist_list:
+    #     print('dist', i)
+    #     ret, th1 = cv.threshold(
+    #         dist_transform, i * dist_transform.max(), 255, 0)
+        
+    #     th1 = np.uint8(th1)
+    #     # p.imshow('th11',th1)
+    #     # cv.waitKey(-1)
+        
+    #     _, cnts, _ = cv.findContours(
+    #         th1, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
 
-            r = int((1+i)*r)
+    #     for cnt in cnts:
+    #         (x, y), (width, height), angle = cv.minAreaRect(cnt)
 
-            cv.circle(res, (int(x), int(y)), int(r), (255), -1)
-            cv.circle(dist_transform, (int(x), int(y)), int(r) + 2, (0), -1)
-            cv.circle(th, (int(x), int(y)), int(r), (int(127)), 2)
+    #         if width > 0 and height > 0 and not 0.8-(i/2.0) <= (width * 1.0) / height <= 1.2+(i/2.0):
+    #             continue
+    #         (x, y), r = cv.minEnclosingCircle(cnt)
 
-        # kernel = get_kernel('/',(3,3))
-        # dist_transform = cv.erode(dist_transform,kernel)
-        # kernel = get_kernel('\\',(3,3))
-        # dist_transform = cv.erode(dist_transform,kernel)
-        # p.imshow('th', th)
-        # p.imshow('th1', th1)
-        # p.imshow('dis', dist_transform)
-        # cv.waitKey(-1)
+    #         area = cv.contourArea(cnt)
+    #         area_cir = math.pi * r * r
+    #         area_ratio = (area * 1.0) / area_cir
+    #         if area_ratio < 0.7-(i/2.0):
+    #             continue
 
-    p.imshow('gray', gray)
-    p.imshow('equ', equ)
-    p.imshow('th', th)
-    # p.imshow('res_sum', res_sum)
-    p.imshow('res', res)
-    # p.imshow('th_cir', th_cir)
-    # p.imshow('mask',cir_connected)
+    #         r = int((1+i)*r)
+
+    #         cv.circle(res, (int(x), int(y)), int(r), (255), -1)
+    #         cv.circle(dist_transform, (int(x), int(y)), int(r) + 2, (0), -1)
+    #         cv.circle(th, (int(x), int(y)), int(r), (int(127)), 2)
+
+       
+
+    # p.imshow('gray', gray)
+    # # p.imshow('equ', equ)
+    # p.imshow('th', th)
+    # p.imshow('res', res)
+    p.imshow('img', img)
+
     k = cv.waitKey(-1)
     if k == ord('e'):
         exit(0)
     if not p.get_mode():
-        return res
+        return mask
 
 
 def main():
@@ -110,7 +162,6 @@ def main():
                 print('Cannot read image: ', img_name)
                 continue
 
-            # res = get_oil_gland(img,img_name)
             res = mask_only_circle(img)
             if res is None:
                 print('Cannot get oil gland from the image: ', img_name)
@@ -132,6 +183,6 @@ def main():
 
 
 if __name__ == '__main__':
-    p.change_mode(True)
+    # p.change_mode(True)
     main()
     pass
