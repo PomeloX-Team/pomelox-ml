@@ -6,7 +6,7 @@
     Python Version: 3.6.1
 '''
 
-import cv2
+import cv2 as cv
 import numpy as np
 import operator
 import statistics
@@ -22,13 +22,25 @@ class Print:
 
     def imshow(self, winname, mat):
         if self.debug_mode:
-            cv2.imshow(winname, mat)
+            cv.imshow(winname, mat)
 
     def change_mode(self, mode):
         self.debug_mode = mode
 
     def get_mode(self):
         return self.debug_mode
+
+    def imshow_float(self, winname, mat):
+        if self.debug_mode:
+            color_map = color_mapping(mat)
+            cv.imshow(winname, color_map)
+
+
+def color_mapping(mat):
+    norm = None
+    norm = cv.normalize(src=mat, dst=norm, alpha=0, beta=255,
+                        norm_type=cv.NORM_MINMAX, dtype=cv.CV_8UC3)
+    return cv.applyColorMap(norm, cv.COLORMAP_HSV)
 
 
 def get_symbol_list():
@@ -85,11 +97,11 @@ def get_mode(channel, min=0, max=255):
 
 def get_kernel(shape='[]', ksize=(5, 5)):
     if shape == '[]':
-        return cv2.getStructuringElement(cv2.MORPH_RECT, ksize)
+        return cv.getStructuringElement(cv.MORPH_RECT, ksize)
     elif shape == '0':
-        return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
+        return cv.getStructuringElement(cv.MORPH_ELLIPSE, ksize)
     elif shape == '+':
-        return cv2.getStructuringElement(cv2.MORPH_CROSS, ksize)
+        return cv.getStructuringElement(cv.MORPH_CROSS, ksize)
     elif shape == '\\':
         kernel = np.diag([1] * ksize[0])
         return np.uint8(kernel)
@@ -101,73 +113,73 @@ def get_kernel(shape='[]', ksize=(5, 5)):
 
 
 def brightness(img_bgr, brightnessValue):
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
+    hsv = cv.cvtColor(img_bgr, cv.COLOR_BGR2HSV)
+    h, s, v = cv.split(hsv)
     v = np.uint16(v)
     v = np.clip(v + brightnessValue, 0, 255)
     v = np.uint8(v)
-    hsv = cv2.merge((h, s, v))
-    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    hsv = cv.merge((h, s, v))
+    return cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
 
 
 def brightness_gray(img_gray, brightnessValue):
-    bgr = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
-    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
+    bgr = cv.cvtColor(img_gray, cv.COLOR_GRAY2BGR)
+    hsv = cv.cvtColor(bgr, cv.COLOR_BGR2HSV)
+    h, s, v = cv.split(hsv)
     v = np.uint16(v)
     v = np.clip(v + brightnessValue, 0, 255)
     v = np.uint8(v)
-    hsv = cv2.merge((h, s, v))
-    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-    return cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    hsv = cv.merge((h, s, v))
+    bgr = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+    return cv.cvtColor(bgr, cv.COLOR_BGR2GRAY)
 
 
 def equalization_bgr(img_bgr):
-    b, g, r = cv2.split(img_bgr)
-    b = cv2.equalizeHist(b)
-    g = cv2.equalizeHist(g)
-    r = cv2.equalizeHist(r)
-    equ_bgr = cv2.merge((b, g, r))
+    b, g, r = cv.split(img_bgr)
+    b = cv.equalizeHist(b)
+    g = cv.equalizeHist(g)
+    r = cv.equalizeHist(r)
+    equ_bgr = cv.merge((b, g, r))
     return equ_bgr
 
 
 def equalization_hsv(img_hsv):
-    h, s, v = cv2.split(img_hsv)
-    s = cv2.equalizeHist(s)
-    v = cv2.equalizeHist(v)
-    equ_hsv = cv2.merge((h, s, v))
+    h, s, v = cv.split(img_hsv)
+    s = cv.equalizeHist(s)
+    v = cv.equalizeHist(v)
+    equ_hsv = cv.merge((h, s, v))
     return equ_hsv
 
 
 def equalization_gray(img_gray):
-    equ_gray = cv2.equalizeHist(img_gray)
+    equ_gray = cv.equalizeHist(img_gray)
     return equ_gray
 
 
 def clahe_gray(img_gray):
-    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    clahe = cv.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     resGRAY = clahe.apply(img_gray)
     return resGRAY
 
 
 def clahe_by_Lab(img_bgr):
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2Lab)
-    l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    lab = cv.cvtColor(img_bgr, cv.COLOR_BGR2Lab)
+    l, a, b = cv.split(lab)
+    clahe = cv.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     l = clahe.apply(l)
-    lab = cv2.merge((l, a, b))
-    res_bgr = cv2.cvtColor(lab, cv2.COLOR_Lab2BGR)
+    lab = cv.merge((l, a, b))
+    res_bgr = cv.cvtColor(lab, cv.COLOR_Lab2BGR)
     return res_bgr
 
 
 def clahe_by_hsv(img_bgr):
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv)
-    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+    hsv = cv.cvtColor(img_bgr, cv.COLOR_BGR2HSV)
+    h, s, v = cv.split(hsv)
+    clahe = cv.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
     v = clahe.apply(v)
     s = clahe.apply(s)
-    hsv = cv2.merge((h, s, v))
-    res_bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    hsv = cv.merge((h, s, v))
+    res_bgr = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
     return res_bgr
 
 
@@ -179,12 +191,12 @@ def adjust_gamma(image, gamma=1.0):
                       for i in np.arange(0, 256)]).astype("uint8")
 
     # apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
+    return cv.LUT(image, table)
 
 
 def adjust_gamma_Lab(image):
-    Lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
-    L, a, b = cv2.split(Lab)
+    Lab = cv.cvtColor(image, cv.COLOR_BGR2Lab)
+    L, a, b = cv.split(Lab)
     L_mean = np.mean(L)
     L_mean = L_mean / 50.0
     gamma = L_mean
@@ -195,4 +207,4 @@ def adjust_gamma_Lab(image):
                       for i in np.arange(0, 256)]).astype("uint8")
 
     # apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
+    return cv.LUT(image, table)
