@@ -8,10 +8,10 @@
 
 import cv2 as cv
 from lib import *
+import statistics
 import numpy as np
 import constant as CONST
 from operator import itemgetter
-import statistics
 
 debug = False
 p = Print(debug)
@@ -92,7 +92,7 @@ def crop_rect(image):
     res_y = int(y) * ratio
     res_r = int(r) * ratio
 
-    w = int(0.45 * res_r)
+    w = int(0.6 * res_r)
     img_rect = result[res_y - w:res_y + w, res_x - w:res_x + w]
     img_rect = cv.resize(img_rect, (CONST.RECT_SIZE, CONST.RECT_SIZE))
 

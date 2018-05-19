@@ -55,7 +55,7 @@ def mask_only_circle(img):
         rect = (x,y), (w, h), angle  = cv.minAreaRect(cnt)
         box = cv.boxPoints(rect)
         box = np.int0(box)
-        cv.drawContours(gray2color,[box],0,(255,255,255),2)
+        # cv.drawContours(gray2color,[box],0,(255,255,255),2)
         area = cv.contourArea(cnt)
         if w <=0 or h <= 0 :
             continue
@@ -77,8 +77,8 @@ def mask_only_circle(img):
             rect = cv.minAreaRect(cnt)
             box = cv.boxPoints(rect)
             box = np.int0(box)
-            cv.drawContours(mask_tmp,[box],0,(255),300)
-            cv.drawContours(gray2color,[box],0,(0,0,0),2)
+            # cv.drawContours(mask_tmp,[box],0,(255),300)
+            # cv.drawContours(gray2color,[box],0,(0,0,0),2)
             mask = mask & mask_tmp
 
 
@@ -183,6 +183,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # p.change_mode(True)
+    p.change_mode(True)
     main()
     pass
